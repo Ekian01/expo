@@ -1,30 +1,63 @@
----
-title: Introduction
-description: Get started creating apps with Expo.
-hideTOC: true
----
+import React from 'react';
+import { View, Text, StyleSheet, Button, TouchableOpacity } from 'react-native';
+import { Camera } from 'react-native-camera';
+import Video from 'react-native-video';
 
-import { BookOpen02Icon } from '@expo/styleguide-icons/outline/BookOpen02Icon';
-import { Earth02Icon } from '@expo/styleguide-icons/outline/Earth02Icon';
+const App = () => {
+  const [isRecording, setIsRecording] = React.useState(false);
+  const [videoUri, setVideoUri] = React.useState(null);
+  let camera;
 
-import { BoxLink } from '~/ui/components/BoxLink';
+  const startRecording = async () => {
+    if (camera) {
+      setIsRecording(true);
+      const videoData = await camera.recordAsync();
+      setVideoUri(videoData.uri);
+      setIsRecording(false);
+    }
+  };
 
-Expo is a framework that makes developing Android and iOS apps easier. Our framework provides file-based routing, a standard library of native modules, and much more. Expo is open source with an active community on [GitHub](https://github.com/expo/expo) and [Discord](https://chat.expo.dev).
+  const stopRecording = () => {
+    if (camera) {
+      camera.stopRecording();
+    }
+  };
 
-We also make [Expo Application Services (EAS)](https://expo.dev/eas), a set of services that complement the Expo framework in each step of the development process.
+  return (
+    <View style={styles.container}>
+      {!videoUri ? (
+        <Camera
+          ref={(ref) => (camera = ref)}
+          style={styles.camera}
+          type={Camera.Constants.Type.back}
+        >
+          <TouchableOpacity
+            style={styles.button}
+            onPress={isRecording ? stopRecording : startRecording}
+          >
+            <Text style={styles.buttonText}>
+              {isRecording ? 'Stop' : 'Record'}
+            </Text>
+          </TouchableOpacity>
+        </Camera>
+      ) : (
+        <Video
+          source={{ uri: videoUri }}
+          style={styles.video}
+          controls
+          resizeMode="cover"
+        />
+      )}
+    </View>
+  );
+};
 
-There are two ways to get started:
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  camera: { flex: 1, justifyContent: 'flex-end', alignItems: 'center' },
+  button: { backgroundColor: 'red', padding: 10, marginBottom: 30 },
+  buttonText: { color: 'white', fontSize: 20 },
+  video: { flex: 1 },
+});
 
-<BoxLink
-  title="Automated setup with expo.new"
-  description="Create a project, set up your development environment, automatically configure build and update automations, and start developing."
-  href="https://expo.new/"
-  Icon={Earth02Icon}
-/>
-
-<BoxLink
-  title="Quick start docs"
-  description="Create a project, set up your development environment, and start developing."
-  href="/get-started/create-a-project/"
-  Icon={BookOpen02Icon}
-/>
+export default App;
